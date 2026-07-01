@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <div class="header">
+
+            <h1> Weather Prediction Dashboard</h1>
+
+            <button onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+
+        <div class="search-area">
+
+            <input type="text" id="city" placeholder="Enter city name">
+
+            <button onclick="getWeather()">
+                Search
+            </button>
+
+        </div>
+
+        <div id="weatherCard" class="weather-card">
+
+        </div>
+
+        <div id="forecastContainer" class="forecast-container">
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // Prevent opening dashboard without login
+
+        if (sessionStorage.getItem("loggedIn") != "true") {
+
+            window.location.href = "index.html";
+
+        }
+
+        // Logout
+
+        function logout() {
+
+            sessionStorage.clear();
+
+            window.location.href = "index.html";
+
+        }
+
+        // Enter key search
+
+        document.getElementById("city").addEventListener("keypress", function (e) {
+
+            if (e.key === "Enter") {
+
+                getWeather();
+
+            }
+
+        });
+
+        async function getWeather() {
+
+            let city = document.getElementById("city").value.trim();
+
+            if (city === "") {
+
+                alert("Please enter a city name.");
+
+                return;
+
+            }
+
+            const apiKey = "295f6ef0a97d2242dd1ae3c3b72c0235";
+
+            const url =
+                `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+
+            try {
+
+                const response = await fetch(url);
+
+                const data = await response.json();
+
+                if (!response.ok) {
+
+                    alert(data.message || "Unable to fetch weather data.");
+
+                    return;
+
+                }
+
+                const weather = data.weather[0];
+                const windSpeedKph = (data.wind.speed * 3.6).toFixed(1);
+                const localTime = new Date((data.dt + data.timezone) * 1000)
+                    .toLocaleString("en-GB", {
+                        timeZone: "UTC",
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                    });
+
+                let currentHTML =
+
+                    `
+        <h2>${data.name}, ${data.sys.country}</h2>
+
+        <img
+        src="https://openweathermap.org/img/wn/${weather.icon}@2x.png"
+        alt="Weather Icon">
+
+        <h1>${Math.round(data.main.temp)}°C</h1>
+
+        <p><b>${weather.description}</b></p>
+
+        <p>Feels Like :
+        ${Math.round(data.main.feels_like)}°C</p>
+
+        <p>Humidity :
+        ${data.main.humidity}%</p>
+
+        <p>Wind Speed :
+        ${windSpeedKph} km/h</p>
+
+        <p>Last Updated :
+        ${localTime}</p>
+
+        `;
+
+                document.getElementById("weatherCard").innerHTML = currentHTML;
+
+                document.getElementById("forecastContainer").innerHTML = "";
+
+                let weatherDescription = weather.description.toLowerCase();
+
+                document.body.className = "";
+
+                if (weatherDescription.includes("sun") ||
+                    weatherDescription.includes("clear")) {
+
+                    document.body.classList.add("sunny");
+
+                }
+
+                else if (weatherDescription.includes("rain") ||
+                    weatherDescription.includes("drizzle")) {
+
+                    document.body.classList.add("rainy");
+
+                }
+
+                else if (weatherDescription.includes("cloud")) {
+
+                    document.body.classList.add("cloudy");
+
+                }
+
+                else if (weatherDescription.includes("snow")) {
+
+                    document.body.classList.add("snowy");
+
+                }
+
+                else {
+                    document.body.classList.add("defaultBg");
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.log(error);
+
+                alert("Unable to fetch weather data. Please try again.");
+
+            }
+
+        }
+
+        // Load a default city when dashboard opens
+
+        window.onload = function () {
+
+            document.getElementById("city").value = "Delhi";
+
+            getWeather();
+
+        };
+
+    </script>
+
+</body>
+
+</html>

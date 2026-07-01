@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard - Login</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <h1>Weather Dashboard</h1>
+        <h2>Login</h2>
+
+        <input type="text" id="username" placeholder="Enter Username">
+
+        <input type="password" id="password" placeholder="Enter Password">
+
+        <button onclick="loginUser()">
+            Login
+        </button>
+
+        <p id="message"></p>
+
+    </div>
+
+    <script>
+
+        async function loginUser() {
+
+            let username = document.getElementById("username").value.trim();
+            let password = document.getElementById("password").value.trim();
+
+            let message = document.getElementById("message");
+
+            message.innerHTML = "";
+
+            if (username === "" || password === "") {
+
+                message.innerHTML = "Please enter username and password.";
+                return;
+
+            }
+
+            try {
+
+                let response = await fetch("./users.json", { cache: "no-store" });
+
+                if (!response.ok) {
+
+                    throw new Error(`Unable to load users.json (${response.status})`);
+
+                }
+
+                let users = await response.json();
+
+                let validUser = false;
+
+                for (let i = 0; i < users.length; i++) {
+
+                    if (users[i].username === username &&
+                        users[i].password === password) {
+
+                        validUser = true;
+                        break;
+
+                    }
+
+                }
+
+                if (validUser) {
+
+                    sessionStorage.setItem("loggedIn", "true");
+                    sessionStorage.setItem("username", username);
+
+                    window.location.href = "dashboard.html";
+
+                }
+
+                else {
+
+                    message.innerHTML = "Invalid username or password.";
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.log(error);
+
+                message.innerHTML = window.location.protocol === "file:"
+                    ? "Please open this website using a local web server."
+                    : "Unable to load users.json";
+
+            }
+
+        }
+
+        document.getElementById("password").addEventListener("keypress", function (event) {
+
+            if (event.key === "Enter") {
+
+                loginUser();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
